@@ -3,5 +3,6 @@
   "terraform-modules/parts/aws/aws_eks": "1.2.0",
   "terraform-modules/parts/aws/irsa_role": "1.1.0",
   "terraform-modules/parts/aws/s3-bucket": "1.2.0",
-  "terraform-modules/parts/aws/rds-postgres": "1.1.0"
+  "terraform-modules/parts/aws/rds-postgres": "1.1.0",
+  "terraform-modules/parts/aws/sqs-queue": "1.0.0"
 }

@@ -25,6 +25,11 @@
       "release-type": "terraform-module",
       "package-name": "modules/rds-postgres",
       "changelog-path": "CHANGELOG.md"
+    },
+    "terraform-modules/parts/aws/sqs-queue": {
+      "release-type": "terraform-module",
+      "package-name": "modules/sqs-queue",
+      "changelog-path": "CHANGELOG.md"
     }
   }
 }
