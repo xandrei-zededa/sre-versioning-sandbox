@@ -29,17 +29,9 @@ jobs:
             ci
             chore
             revert
-          scopes: |
-            aws-eks
-            irsa-role
-            sandbox-test
-            s3-bucket
-            rds-postgres
-            sqs-queue
-            deps
-            renovate
-            release
+          # Allow any alphanumeric scope matching module names (e.g. sqs-queue, aws-eks)
           requireScope: false
+          validateSingleCommit: false
 
       - name: Post Help Comment on Failure
         if: failure()
@@ -60,5 +52,3 @@ jobs:
             * `feat(sqs-queue): add fifo dead letter queue support`
             * `fix(aws-eks): resolve invalid security group rule`
             * `chore(deps): update dependency version`
-
-            **Allowed scopes:** `aws-eks`, `irsa-role`, `rds-postgres`, `s3-bucket`, `sqs-queue`, `sandbox-test`, `deps`.
