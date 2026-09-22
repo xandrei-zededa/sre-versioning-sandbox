@@ -18,11 +18,11 @@ find "$REPO_ROOT/terragrunt/deployments" -name "terragrunt.hcl" | sort | while r
 
   # Parse module source line
   source_line=$(grep "source.*git::" "$file" 2>/dev/null || true)
-  
+
   if [ -n "$source_line" ]; then
     module_name=$(echo "$source_line" | sed -n 's/.*terraform-modules\/parts\/\([a-zA-Z0-9_\/-]*\)?ref=.*/\1/p')
     pinned_version=$(echo "$source_line" | sed -n 's/.*ref=modules\/[a-zA-Z0-9_-]*-v\([0-9.]*\).*/v\1/p')
-    
+
     if [ -z "$pinned_version" ]; then
       pinned_version=$(echo "$source_line" | sed -n 's/.*ref=\([^"]*\).*/\1/p')
     fi
