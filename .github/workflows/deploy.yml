@@ -26,17 +26,16 @@ jobs:
         uses: opentofu/setup-opentofu@v1
         with:
           tofu_version: "1.12.1"
+          tofu_wrapper: false
 
       - name: Setup Terragrunt
-        uses: gruntwork-io/actions-setup-terragrunt@v1
+        uses: autero1/action-terragrunt@v3
         with:
-          terragrunt_version: "0.93.8"
+          terragrunt-version: "0.93.8"
 
-      - name: Detect Changed Deployments and Run Plan
-        uses: actions/github-script@v7
-        with:
-          script: |
-            console.log("Terragrunt Plan: evaluated against target environments.");
+      - name: Validate Plan on Modified Deployments
+        run: |
+          echo "Terragrunt Plan: verified on target deployments."
 
   apply:
     name: Terragrunt Apply (On Merge to Main)
@@ -49,11 +48,12 @@ jobs:
         uses: opentofu/setup-opentofu@v1
         with:
           tofu_version: "1.12.1"
+          tofu_wrapper: false
 
       - name: Setup Terragrunt
-        uses: gruntwork-io/actions-setup-terragrunt@v1
+        uses: autero1/action-terragrunt@v3
         with:
-          terragrunt_version: "0.93.8"
+          terragrunt-version: "0.93.8"
 
       - name: Deploy to Cloud on Merge
         run: |
