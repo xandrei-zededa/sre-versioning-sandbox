@@ -9,7 +9,7 @@ Promoting a new module version across 27 clusters must be staged to minimize bla
 ## Step-by-Step Procedure
 
 ### 1. View Available Updates
-Navigate to **[Issue #18: Dependency Dashboard](https://github.com/xandrei-zededa/sre-versioning-sandbox/issues/18)**.  
+Navigate to **[Issue #18: Dependency Dashboard](https://github.com/xandrei-zededa/sre-versioning-sandbox/issues/18)**.
 Renovate automatically groups clusters into stages:
 * `Canary Dev Clusters`
 * `Staging Clusters`
