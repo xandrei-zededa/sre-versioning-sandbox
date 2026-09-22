@@ -26,11 +26,11 @@ variable "instance_class" {
 }
 
 resource "aws_db_instance" "this" {
-  identifier        = var.identifier
-  allocated_storage = var.allocated_storage
-  engine            = "postgres"
-  engine_version    = "16.1"
-  instance_class    = var.instance_class
+  identifier          = var.identifier
+  allocated_storage   = var.allocated_storage
+  engine              = "postgres"
+  engine_version      = "16.1"
+  instance_class      = var.instance_class
   skip_final_snapshot = true
 }
 
