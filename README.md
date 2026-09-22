@@ -3,7 +3,7 @@
 [![CI](https://github.com/xandrei-zededa/sre-versioning-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/xandrei-zededa/sre-versioning-sandbox/actions/workflows/ci.yml)
 [![Release Please](https://github.com/xandrei-zededa/sre-versioning-sandbox/actions/workflows/release-please.yml/badge.svg)](https://github.com/xandrei-zededa/sre-versioning-sandbox/actions/workflows/release-please.yml)
 
-> **Audience:** Platform Engineers, SREs, and Infrastructure Developers.  
+> **Audience:** Platform Engineers, SREs, and Infrastructure Developers.
 > **Purpose:** Practical, end-to-end reference architecture explaining how module semantic versioning, automated releases, zero-cloud unit testing, and staged canary promotions work across a fleet of 27 Kubernetes clusters without downtime or production risk.
 
 ---
@@ -27,7 +27,7 @@
 ## 1. The Problem: Why Relative Paths Fail at Scale
 
 ### Historical State (The Anti-Pattern)
-In a traditional monorepo layout, modules live in `terraform-modules/parts/aws/aws_eks/`.  
+In a traditional monorepo layout, modules live in `terraform-modules/parts/aws/aws_eks/`.
 All 27 environments (including production cluster `tmna`, staging, and development cluster `madmax`) reference this directory using local filesystem paths:
 
 ```hcl
@@ -210,7 +210,7 @@ Engineers **never** create Git tags or releases manually.
 
 1. When a PR is merged into `main`, the **Release Please** workflow triggers.
 2. The engine parses the commit message (e.g. `feat(s3-bucket): ...`).
-3. It automatically maintains an open Release PR:  
+3. It automatically maintains an open Release PR:
    👉 `chore: release main`
 4. This PR automatically:
    * Increments the module version in `.release-please-manifest.json`: `1.1.0 -> 1.2.0`.
@@ -223,7 +223,7 @@ Engineers **never** create Git tags or releases manually.
 
 ## 8. Scenario 5: Staged Canary Rollout Across Clusters (Renovate)
 
-Once `modules/s3-bucket-v1.2.0` is published, deployments must be updated.  
+Once `modules/s3-bucket-v1.2.0` is published, deployments must be updated.
 The **Self-Hosted Renovate Runner** manages promotions via **[Issue #18: Dependency Dashboard](https://github.com/xandrei-zededa/sre-versioning-sandbox/issues/18)**.
 
 ```text
@@ -286,7 +286,7 @@ A new module version `v1.2.0` was applied to Production, and an unexpected cloud
    # Rollback (safe):
    source = "...?ref=modules/aws-eks-v1.1.0"
    ```
-3. Run `terragrunt apply` (via Atlantis or local CLI).  
+3. Run `terragrunt apply` (via Atlantis or local CLI).
    Infrastructure immediately reverts to the exact previous state. No code edits or git reverts in `terraform-modules/` are needed.
 
 ---
@@ -302,7 +302,7 @@ GitHub applies a security policy for public repositories: when automated PRs are
 ### Permanent Resolution:
 1. Navigate to: **Settings $\rightarrow$ Actions $\rightarrow$ General**.
 2. Scroll to **Fork pull request workflows from outside collaborators**.
-3. Select:  
+3. Select:
    👉 **`Require approval for first-time contributors with no prior commits`**.
 
 Automated PRs from Renovate will now trigger CI runs immediately without pauses.
