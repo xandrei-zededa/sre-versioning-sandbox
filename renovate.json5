@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Renovate configuration for Terraform monorepo with distinct commit and PR titles per cluster group",
+  "description": "Renovate configuration for Terraform monorepo with distinct commit messages per cluster group",
   "extends": [
     "config:recommended"
   ],
@@ -32,20 +32,17 @@
     {
       "matchFileNames": ["terragrunt/deployments/development/**"],
       "groupName": "Canary Dev Clusters",
-      "commitMessageTopic": "Dev Clusters (madmax/alpha)",
-      "prTitle": "chore(deps): bump modules in Dev Clusters (madmax/alpha) to {{newVersion}}"
+      "commitMessageTopic": "Dev Clusters (madmax/alpha)"
     },
     {
       "matchFileNames": ["terragrunt/deployments/staging/**"],
       "groupName": "Staging Clusters",
-      "commitMessageTopic": "Staging Clusters",
-      "prTitle": "chore(deps): bump modules in Staging Clusters to {{newVersion}}"
+      "commitMessageTopic": "Staging Clusters"
     },
     {
       "matchFileNames": ["terragrunt/deployments/production/**"],
       "groupName": "Production Clusters",
-      "commitMessageTopic": "Production Clusters",
-      "prTitle": "chore(deps): bump modules in Production Clusters to {{newVersion}}"
+      "commitMessageTopic": "Production Clusters"
     }
   ]
 }
