@@ -1,0 +1,8 @@
+# Local caches
+.terraform/
+.terraform.lock.hcl
+.terragrunt-cache/
+*.tfstate
+*.tfstate.*
+*.bin
+*.json

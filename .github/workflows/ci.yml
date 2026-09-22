@@ -36,7 +36,7 @@ jobs:
       - name: Generate Module Documentation
         uses: terraform-docs/gh-actions@v1.4.1
         with:
-          working-dir: terraform-modules/parts/aws/aws_eks,terraform-modules/parts/aws/irsa_role,terraform-modules/parts/sandbox-test
+          working-dir: terraform-modules/parts/aws/aws_eks,terraform-modules/parts/aws/irsa_role,terraform-modules/parts/sandbox-test,terraform-modules/parts/aws/s3-bucket,terraform-modules/parts/aws/rds-postgres
           output-file: README.md
           output-method: inject
           git-push: "false"
@@ -54,6 +54,10 @@ jobs:
             path: "terraform-modules/parts/aws/aws_eks"
           - name: "irsa-role"
             path: "terraform-modules/parts/aws/irsa_role"
+          - name: "s3-bucket"
+            path: "terraform-modules/parts/aws/s3-bucket"
+          - name: "rds-postgres"
+            path: "terraform-modules/parts/aws/rds-postgres"
 
     steps:
       - uses: actions/checkout@v7

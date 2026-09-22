@@ -15,6 +15,16 @@
       "release-type": "terraform-module",
       "package-name": "modules/irsa-role",
       "changelog-path": "CHANGELOG.md"
+    },
+    "terraform-modules/parts/aws/s3-bucket": {
+      "release-type": "terraform-module",
+      "package-name": "modules/s3-bucket",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "terraform-modules/parts/aws/rds-postgres": {
+      "release-type": "terraform-module",
+      "package-name": "modules/rds-postgres",
+      "changelog-path": "CHANGELOG.md"
     }
   }
 }
