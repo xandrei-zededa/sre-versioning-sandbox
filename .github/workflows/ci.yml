@@ -11,33 +11,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  filter:
-    name: Detect Changed Modules
-    runs-on: ubuntu-latest
-    outputs:
-      modules: ${{ steps.filter.outputs.changes }}
-      has_modules: ${{ steps.filter.outputs.modules_any }}
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Path Filter for Terraform Modules
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            sandbox_test: 'terraform-modules/parts/sandbox-test/**'
-            aws_eks: 'terraform-modules/parts/aws/aws_eks/**'
-            irsa_role: 'terraform-modules/parts/aws/irsa_role/**'
-            modules_any: 'terraform-modules/**'
-
-  validate-and-test:
-    name: Lint, Security & Unit Tests
-    needs: filter
+  lint-and-security:
+    name: Lint, Docs & Security
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
@@ -55,7 +33,7 @@ jobs:
           severity: "HIGH,CRITICAL"
           exit-code: "0"
 
-      - name: Generate Terraform Module Documentation
+      - name: Generate Module Documentation
         uses: terraform-docs/gh-actions@v1.4.1
         with:
           working-dir: terraform-modules/parts/aws/aws_eks,terraform-modules/parts/aws/irsa_role,terraform-modules/parts/sandbox-test
@@ -63,23 +41,30 @@ jobs:
           output-method: inject
           git-push: "false"
 
-      - name: Targeted OpenTofu Unit Tests (Changed Modules Only)
+  unit-tests:
+    name: Unit Test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - name: "sandbox-test"
+            path: "terraform-modules/parts/sandbox-test"
+          - name: "aws-eks"
+            path: "terraform-modules/parts/aws/aws_eks"
+          - name: "irsa-role"
+            path: "terraform-modules/parts/aws/irsa_role"
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "1.12.1"
+
+      - name: Test ${{ matrix.module.name }} (tofu test + mock_provider)
+        working-directory: ${{ matrix.module.path }}
         run: |
-          CHANGES='${{ needs.filter.outputs.modules }}'
-          echo "Changed module categories: $CHANGES"
-          
-          # Если это push в main или изменен конкретный модуль - запускаем точечно
-          if [[ "${{ github.event_name }}" == "push" ]] || echo "$CHANGES" | grep -q "sandbox_test"; then
-            echo ">>> Testing: terraform-modules/parts/sandbox-test"
-            (cd terraform-modules/parts/sandbox-test && tofu init -backend=false && tofu test)
-          fi
-          
-          if [[ "${{ github.event_name }}" == "push" ]] || echo "$CHANGES" | grep -q "aws_eks"; then
-            echo ">>> Testing: terraform-modules/parts/aws/aws_eks"
-            (cd terraform-modules/parts/aws/aws_eks && tofu init -backend=false && tofu test)
-          fi
-          
-          if [[ "${{ github.event_name }}" == "push" ]] || echo "$CHANGES" | grep -q "irsa_role"; then
-            echo ">>> Testing: terraform-modules/parts/aws/irsa_role"
-            (cd terraform-modules/parts/aws/irsa_role && tofu init -backend=false && tofu test)
-          fi
+          tofu init -backend=false
+          tofu test
