@@ -11,6 +11,51 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  detect-changes:
+    name: Detect Changed Modules
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.set-matrix.outputs.modules }}
+      has_modules: ${{ steps.set-matrix.outputs.has_modules }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Compute Changed Modules Dynamically
+        id: set-matrix
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BASE_REF="origin/${{ github.base_ref }}"
+          else
+            BASE_REF="HEAD~1"
+          fi
+
+          echo "Comparing against: $BASE_REF"
+          
+          # Find all testable modules with a tests directory
+          ALL_MODULES=$(find terraform-modules -name "*.tftest.hcl" -exec dirname {} + | sed 's/\/tests$//' | sort -u)
+          
+          CHANGED_MODULES=()
+          for mod in $ALL_MODULES; do
+            # If on push to main or files in this specific module changed
+            if [ "${{ github.event_name }}" == "push" ] || git diff --name-only $BASE_REF HEAD | grep -q "^$mod/"; then
+              pkg_name=$(basename "$mod" | tr '_' '-')
+              CHANGED_MODULES+=("{\"name\":\"$pkg_name\",\"path\":\"$mod\"}")
+            fi
+          done
+
+          if [ ${#CHANGED_MODULES[@]} -eq 0 ]; then
+            echo "No modules changed."
+            echo "has_modules=false" >> $GITHUB_OUTPUT
+            echo "modules=[]" >> $GITHUB_OUTPUT
+          else
+            JSON="[$(IFS=,; echo "${CHANGED_MODULES[*]}")]"
+            echo "Targeted modules to test: $JSON"
+            echo "has_modules=true" >> $GITHUB_OUTPUT
+            echo "modules=$JSON" >> $GITHUB_OUTPUT
+          fi
+
   lint-and-security:
     name: Lint, Docs & Security
     runs-on: ubuntu-latest
@@ -43,21 +88,13 @@ jobs:
 
   unit-tests:
     name: Unit Test
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has_modules == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - name: "sandbox-test"
-            path: "terraform-modules/parts/sandbox-test"
-          - name: "aws-eks"
-            path: "terraform-modules/parts/aws/aws_eks"
-          - name: "irsa-role"
-            path: "terraform-modules/parts/aws/irsa_role"
-          - name: "s3-bucket"
-            path: "terraform-modules/parts/aws/s3-bucket"
-          - name: "rds-postgres"
-            path: "terraform-modules/parts/aws/rds-postgres"
+        module: ${{ fromJson(needs.detect-changes.outputs.modules) }}
 
     steps:
       - uses: actions/checkout@v7
