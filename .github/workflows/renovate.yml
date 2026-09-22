@@ -1,0 +1,22 @@
+name: Renovate Trigger
+
+on:
+  issues:
+    types: [edited]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *' # Every hour
+
+jobs:
+  renovate:
+    if: github.event_name != 'issues' || github.event.issue.number == 4
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Run Renovate on Dashboard Checkbox Change
+        run: |
+          npx --yes --package renovate renovate \
+            --token="${{ secrets.GITHUB_TOKEN }}" \
+            --platform=github \
+            "${{ github.repository }}"
