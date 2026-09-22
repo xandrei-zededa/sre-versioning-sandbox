@@ -11,50 +11,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  detect-changes:
+  filter:
     name: Detect Changed Modules
     runs-on: ubuntu-latest
     outputs:
-      modules: ${{ steps.set-matrix.outputs.modules }}
-      has_modules: ${{ steps.set-matrix.outputs.has_modules }}
+      packages: ${{ steps.filter.outputs.changes }}
+      has_changes: ${{ steps.filter.outputs.any_changed }}
     steps:
       - uses: actions/checkout@v7
+
+      # Official Marketplace Action: conditional matrix output based on file changes
+      - uses: dorny/paths-filter@v3
+        id: filter
         with:
-          fetch-depth: 0
-
-      - name: Compute Changed Modules Dynamically
-        id: set-matrix
-        run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            BASE_REF="origin/${{ github.base_ref }}"
-          else
-            BASE_REF="HEAD~1"
-          fi
-
-          echo "Comparing against: $BASE_REF"
-
-          # Find all testable modules with a tests directory
-          ALL_MODULES=$(find terraform-modules -name "*.tftest.hcl" -exec dirname {} + | sed 's/\/tests$//' | sort -u)
-
-          CHANGED_MODULES=()
-          for mod in $ALL_MODULES; do
-            # If on push to main or files in this specific module changed
-            if [ "${{ github.event_name }}" == "push" ] || git diff --name-only $BASE_REF HEAD | grep -q "^$mod/"; then
-              pkg_name=$(basename "$mod" | tr '_' '-')
-              CHANGED_MODULES+=("{\"name\":\"$pkg_name\",\"path\":\"$mod\"}")
-            fi
-          done
-
-          if [ ${#CHANGED_MODULES[@]} -eq 0 ]; then
-            echo "No modules changed."
-            echo "has_modules=false" >> $GITHUB_OUTPUT
-            echo "modules=[]" >> $GITHUB_OUTPUT
-          else
-            JSON="[$(IFS=,; echo "${CHANGED_MODULES[*]}")]"
-            echo "Targeted modules to test: $JSON"
-            echo "has_modules=true" >> $GITHUB_OUTPUT
-            echo "modules=$JSON" >> $GITHUB_OUTPUT
-          fi
+          filters: |
+            aws-eks: 'terraform-modules/parts/aws/aws_eks/**'
+            irsa-role: 'terraform-modules/parts/aws/irsa_role/**'
+            rds-postgres: 'terraform-modules/parts/aws/rds-postgres/**'
+            s3-bucket: 'terraform-modules/parts/aws/s3-bucket/**'
+            sandbox-test: 'terraform-modules/parts/sandbox-test/**'
 
   lint-and-security:
     name: Lint, Docs & Security
@@ -88,13 +63,14 @@ jobs:
 
   unit-tests:
     name: Unit Test
-    needs: detect-changes
-    if: needs.detect-changes.outputs.has_modules == 'true'
+    needs: filter
+    # Push to main runs all tests; PRs run ONLY if packages were modified
+    if: github.event_name == 'push' || needs.filter.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        module: ${{ fromJson(needs.detect-changes.outputs.modules) }}
+        package: ${{ github.event_name == 'push' && fromJson('["aws-eks","irsa-role","rds-postgres","s3-bucket","sandbox-test"]') || fromJson(needs.filter.outputs.packages) }}
 
     steps:
       - uses: actions/checkout@v7
@@ -104,8 +80,19 @@ jobs:
         with:
           tofu_version: "1.12.1"
 
-      - name: Test ${{ matrix.module.name }} (tofu test + mock_provider)
-        working-directory: ${{ matrix.module.path }}
+      - name: Map Package Name to Module Path
+        id: map
+        run: |
+          case "${{ matrix.package }}" in
+            "aws-eks") echo "path=terraform-modules/parts/aws/aws_eks" >> $GITHUB_OUTPUT ;;
+            "irsa-role") echo "path=terraform-modules/parts/aws/irsa_role" >> $GITHUB_OUTPUT ;;
+            "rds-postgres") echo "path=terraform-modules/parts/aws/rds-postgres" >> $GITHUB_OUTPUT ;;
+            "s3-bucket") echo "path=terraform-modules/parts/aws/s3-bucket" >> $GITHUB_OUTPUT ;;
+            "sandbox-test") echo "path=terraform-modules/parts/sandbox-test" >> $GITHUB_OUTPUT ;;
+          esac
+
+      - name: Test ${{ matrix.package }} (tofu test + mock_provider)
+        working-directory: ${{ steps.map.outputs.path }}
         run: |
           tofu init -backend=false
           tofu test
