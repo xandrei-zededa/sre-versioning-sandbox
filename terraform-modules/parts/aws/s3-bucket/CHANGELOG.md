@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/xandrei-zededa/sre-versioning-sandbox/compare/modules/s3-bucket-v1.1.0...modules/s3-bucket-v1.2.0) (2026-09-22)
+
+
+### Features
+
+* **s3-bucket:** add intelligent tiering configuration support ([#15](https://github.com/xandrei-zededa/sre-versioning-sandbox/issues/15)) ([e8f8c98](https://github.com/xandrei-zededa/sre-versioning-sandbox/commit/e8f8c98a30d93e1f518a72b40fefd742a6bae05c))
+
 ## [1.1.0](https://github.com/xandrei-zededa/sre-versioning-sandbox/compare/modules/s3-bucket-v1.0.0...modules/s3-bucket-v1.1.0) (2026-09-22)
 
 
