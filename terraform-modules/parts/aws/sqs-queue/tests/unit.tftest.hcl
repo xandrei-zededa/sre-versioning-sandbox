@@ -1,9 +1,10 @@
 mock_provider "aws" {}
 
 variables {
-  required_vpc_id = "vpc-0123456789abcdef0"
-  queue_name      = "sre-dead-letter-queue"
-  fifo_queue      = false
+  required_vpc_id   = "vpc-0123456789abcdef0"
+  queue_name        = "sre-dead-letter-queue"
+  fifo_queue        = false
+  kms_master_key_id = "alias/aws/sqs"
 }
 
 run "verify_sqs_creation" {
@@ -17,6 +18,11 @@ run "verify_sqs_creation" {
   assert {
     condition     = output.vpc_id == "vpc-0123456789abcdef0"
     error_message = "VPC ID output mismatch"
+  }
+
+  assert {
+    condition     = output.kms_key_id == "alias/aws/sqs"
+    error_message = "KMS key output mismatch"
   }
 }
 

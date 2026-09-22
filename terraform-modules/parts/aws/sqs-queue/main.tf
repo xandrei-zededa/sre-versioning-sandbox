@@ -8,7 +8,6 @@ terraform {
   }
 }
 
-# BREAKING CHANGE: required_vpc_id is now mandatory with no default
 variable "required_vpc_id" {
   type        = string
   description = "Mandatory VPC identifier for isolation"
@@ -35,9 +34,16 @@ variable "fifo_queue" {
   description = "Designate as FIFO queue"
 }
 
+variable "kms_master_key_id" {
+  type        = string
+  default     = null
+  description = "Optional AWS KMS master key ID or alias for server-side encryption"
+}
+
 resource "aws_sqs_queue" "this" {
-  name       = var.queue_name
-  fifo_queue = var.fifo_queue
+  name              = var.queue_name
+  fifo_queue        = var.fifo_queue
+  kms_master_key_id = var.kms_master_key_id
 }
 
 output "queue_arn" {
@@ -53,4 +59,9 @@ output "queue_id" {
 output "vpc_id" {
   description = "Attached mandatory VPC ID"
   value       = var.required_vpc_id
+}
+
+output "kms_key_id" {
+  description = "KMS master key configured for the queue"
+  value       = aws_sqs_queue.this.kms_master_key_id
 }
