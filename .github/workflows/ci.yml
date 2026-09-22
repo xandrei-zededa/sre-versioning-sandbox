@@ -11,30 +11,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  discover-modules:
-    name: Auto-Discover Modules
-    runs-on: ubuntu-latest
-    outputs:
-      modules: ${{ steps.discover.outputs.modules }}
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Discover all testable modules automatically
-        id: discover
-        run: |
-          # 1. Finds all directories that contain unit tests (*.tftest.hcl)
-          # 2. Generates JSON matrix automatically. NO HARDCODED LISTS!
-          MODULES=$(find terraform-modules -name "*.tftest.hcl" -exec dirname {} + | sed 's/\/tests$//' | sort -u | jq -R -s -c '
-            split("\n") | map(select(length > 0)) | map({
-              name: (split("/") | last | gsub("_"; "-")),
-              path: .
-            })
-          ')
-          echo "Discovered modules: $MODULES"
-          echo "modules=$MODULES" >> $GITHUB_OUTPUT
-
-  lint-and-security:
-    name: Lint, Docs & Security
+  ci-pipeline:
+    name: Lint, Security & Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -44,10 +22,10 @@ jobs:
         with:
           tofu_version: "1.12.1"
 
-      - name: OpenTofu Format Check (All Modules)
+      - name: OpenTofu Format Check
         run: tofu fmt -check -recursive terraform-modules
 
-      - name: Security Scan with Trivy (All Modules)
+      - name: Security Scan with Trivy
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: "config"
@@ -55,33 +33,17 @@ jobs:
           severity: "HIGH,CRITICAL"
           exit-code: "0"
 
-      - name: Generate Module Documentation (All Modules)
-        uses: terraform-docs/gh-actions@v1.4.1
-        with:
-          working-dir: terraform-modules/parts/aws/aws_eks,terraform-modules/parts/aws/irsa_role,terraform-modules/parts/sandbox-test,terraform-modules/parts/aws/s3-bucket,terraform-modules/parts/aws/rds-postgres
-          output-file: README.md
-          output-method: inject
-          git-push: "false"
-
-  unit-tests:
-    name: Unit Test
-    needs: discover-modules
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        module: ${{ fromJson(needs.discover-modules.outputs.modules) }}
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v1
-        with:
-          tofu_version: "1.12.1"
-
-      - name: Test ${{ matrix.module.name }} (tofu test + mock_provider)
-        working-directory: ${{ matrix.module.path }}
+      - name: Run OpenTofu Tests (All Modules in 1 Fast Pass)
         run: |
-          tofu init -backend=false
-          tofu test
+          echo "=== RUNNING UNIT TESTS ON ALL TESTABLE MODULES ==="
+          FAILED=0
+          for test_file in $(find terraform-modules -name "*.tftest.hcl"); do
+            dir=$(dirname "$test_file" | sed 's/\/tests$//')
+            echo ">>> Testing module: $dir"
+            (cd "$dir" && tofu init -backend=false > /dev/null 2>&1 && tofu test) || FAILED=1
+          done
+          if [ $FAILED -ne 0 ]; then
+            echo "❌ Some module unit tests failed!"
+            exit 1
+          fi
+          echo "✅ All module unit tests passed successfully!"

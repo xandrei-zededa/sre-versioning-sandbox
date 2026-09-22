@@ -28,13 +28,4 @@ jobs:
             ci
             chore
             revert
-          scopes: |
-            aws-eks
-            irsa-role
-            sandbox-test
-            s3-bucket
-            rds-postgres
-            deps
-            renovate
-            release
           requireScope: false
