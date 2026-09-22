@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Renovate configuration for Terraform monorepo with distinct commit messages per cluster group",
+  "description": "Renovate configuration with zero-maintenance dynamic cluster discovery",
   "extends": [
     "config:recommended"
   ],
@@ -30,16 +30,19 @@
   ],
   "packageRules": [
     {
+      "description": "Автоматически группировать любые dev кластеры (даже новые!) по пути папки",
       "matchFileNames": ["terragrunt/deployments/development/**"],
       "groupName": "Canary Dev Clusters",
-      "commitMessageTopic": "Dev Clusters (madmax/alpha)"
+      "commitMessageTopic": "Dev Clusters"
     },
     {
+      "description": "Автоматически группировать любые staging кластеры по пути папки",
       "matchFileNames": ["terragrunt/deployments/staging/**"],
       "groupName": "Staging Clusters",
       "commitMessageTopic": "Staging Clusters"
     },
     {
+      "description": "Автоматически группировать любые production кластеры по пути папки",
       "matchFileNames": ["terragrunt/deployments/production/**"],
       "groupName": "Production Clusters",
       "commitMessageTopic": "Production Clusters"

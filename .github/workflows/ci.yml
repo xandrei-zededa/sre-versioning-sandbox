@@ -10,36 +10,35 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform-plugin-cache
-
 jobs:
-  discover-modules:
-    name: Auto-Discover Modules
+  filter:
+    name: Detect Changed Modules
     runs-on: ubuntu-latest
     outputs:
-      modules: ${{ steps.discover.outputs.modules }}
+      has_modules: ${{ steps.filter.outputs.modules_any }}
+      changed_modules: ${{ steps.filter.outputs.changes }}
     steps:
       - uses: actions/checkout@v7
 
-      - name: Discover testable modules
-        id: discover
-        run: |
-          MODULES=$(find terraform-modules -name "*.tftest.hcl" -exec dirname {} + | sed 's/\/tests$//' | sort -u | jq -R -s -c '
-            split("\n") | map(select(length > 0)) | map({
-              name: (split("/") | last | gsub("_"; "-")),
-              path: .
-            })
-          ')
-          echo "modules=$MODULES" >> $GITHUB_OUTPUT
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            modules_any: 'terraform-modules/**'
+            aws-eks: 'terraform-modules/parts/aws/aws_eks/**'
+            irsa-role: 'terraform-modules/parts/aws/irsa_role/**'
+            rds-postgres: 'terraform-modules/parts/aws/rds-postgres/**'
+            s3-bucket: 'terraform-modules/parts/aws/s3-bucket/**'
+            sqs-queue: 'terraform-modules/parts/aws/sqs-queue/**'
+            sandbox-test: 'terraform-modules/parts/sandbox-test/**'
 
   lint-and-security:
-    name: Lint, Docs & Security
+    name: Fast Lint & Security
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
 
-      - name: Setup OpenTofu (Fast & Cached)
+      - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
         with:
           tofu_version: "1.12.1"
@@ -48,7 +47,7 @@ jobs:
       - name: OpenTofu Format Check
         run: tofu fmt -check -recursive terraform-modules
 
-      - name: Fast Offline Security Scan (Trivy)
+      - name: Fast Trivy Security Scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: "config"
@@ -56,43 +55,39 @@ jobs:
           severity: "HIGH,CRITICAL"
           exit-code: "0"
 
-      - name: Generate Module Documentation
-        uses: terraform-docs/gh-actions@v1.4.1
-        with:
-          working-dir: terraform-modules/parts/aws/aws_eks,terraform-modules/parts/aws/irsa_role,terraform-modules/parts/sandbox-test,terraform-modules/parts/aws/s3-bucket,terraform-modules/parts/aws/rds-postgres,terraform-modules/parts/aws/sqs-queue
-          output-file: README.md
-          output-method: inject
-          git-push: "false"
-
   unit-tests:
-    name: Unit Test
-    needs: discover-modules
+    name: Unit Test Changed
+    needs: filter
+    # НЕ запускать тесты вообще, если файлы модулей не менялись (например, меняли README, CI или Terragrunt)
+    if: needs.filter.outputs.has_modules == 'true'
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        module: ${{ fromJson(needs.discover-modules.outputs.modules) }}
-
     steps:
       - uses: actions/checkout@v7
 
-      - name: Restore OpenTofu Provider Cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/.terraform-plugin-cache
-          key: tofu-providers-${{ runner.os }}-${{ hashFiles('**/.terraform.lock.hcl') }}
-          restore-keys: |
-            tofu-providers-${{ runner.os }}-
-
-      - name: Setup OpenTofu (No Wrapper Overhead)
+      - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
         with:
           tofu_version: "1.12.1"
           tofu_wrapper: false
 
-      - name: Test ${{ matrix.module.name }} (Fast Mock Run)
-        working-directory: ${{ matrix.module.path }}
+      - name: Run Tests ONLY on Modified Modules in PR
         run: |
-          mkdir -p ${{ env.TF_PLUGIN_CACHE_DIR }}
-          tofu init -backend=false
-          tofu test
+          CHANGES='${{ needs.filter.outputs.changed_modules }}'
+          echo "Changed packages: $CHANGES"
+
+          # Находит измененные папки и запускает tofu test строго в них в 1 шаг без 6 отдельных виртуалок
+          for pkg in $(echo "$CHANGES" | jq -r '.[]'); do
+            case "$pkg" in
+              "aws-eks") dir="terraform-modules/parts/aws/aws_eks" ;;
+              "irsa-role") dir="terraform-modules/parts/aws/irsa_role" ;;
+              "rds-postgres") dir="terraform-modules/parts/aws/rds-postgres" ;;
+              "s3-bucket") dir="terraform-modules/parts/aws/s3-bucket" ;;
+              "sqs-queue") dir="terraform-modules/parts/aws/sqs-queue" ;;
+              "sandbox-test") dir="terraform-modules/parts/sandbox-test" ;;
+            esac
+            if [ -n "$dir" ] && [ -d "$dir/tests" ]; then
+              echo ">>> Testing modified module: $dir"
+              (cd "$dir" && tofu init -backend=false > /dev/null 2>&1 && tofu test)
+            fi
+          done
+          echo "Done testing modified modules."
