@@ -13,7 +13,7 @@ EOF
 }
 
 terraform {
-  source = "git::https://github.com/xandrei-zededa/sre-versioning-sandbox.git//terraform-modules/parts/aws/s3-bucket?ref=modules/s3-bucket-v1.1.0"
+  source = "git::https://github.com/xandrei-zededa/sre-versioning-sandbox.git//terraform-modules/parts/aws/s3-bucket?ref=modules/s3-bucket-v1.2.0"
 }
 
 inputs = {
