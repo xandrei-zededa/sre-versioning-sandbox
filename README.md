@@ -3,7 +3,7 @@
 [![CI](https://github.com/xandrei-zededa/sre-versioning-sandbox/actions/workflows/ci.yml/badge.svg)](https://github.com/xandrei-zededa/sre-versioning-sandbox/actions/workflows/ci.yml)
 [![Release Please](https://github.com/xandrei-zededa/sre-versioning-sandbox/actions/workflows/release-please.yml/badge.svg)](https://github.com/xandrei-zededa/sre-versioning-sandbox/actions/workflows/release-please.yml)
 
-> **Audience:** Platform Engineers, SREs, and DevOps Specialists.  
+> **Audience:** Platform Engineers, SREs, and DevOps Specialists.
 > **Repository:** [xandrei-zededa/sre-versioning-sandbox](https://github.com/xandrei-zededa/sre-versioning-sandbox)
 
 ---
