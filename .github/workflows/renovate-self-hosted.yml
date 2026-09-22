@@ -1,0 +1,31 @@
+name: Renovate (Self-Hosted Runner)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */2 * * *'
+  push:
+    branches:
+      - main
+    paths:
+      - 'renovate.json5'
+      - '.release-please-manifest.json'
+
+concurrency:
+  group: renovate-self-hosted
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Self-Hosted Renovate Run
+        uses: renovatebot/github-action@v41.0.14
+        with:
+          configurationFile: renovate.json5
+          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          RENOVATE_REPOSITORIES: '["${{ github.repository }}"]'
+          LOG_LEVEL: 'info'
