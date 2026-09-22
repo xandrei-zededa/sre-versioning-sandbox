@@ -32,6 +32,8 @@ jobs:
             aws-eks
             irsa-role
             sandbox-test
+            s3-bucket
+            rds-postgres
             deps
             renovate
             release
