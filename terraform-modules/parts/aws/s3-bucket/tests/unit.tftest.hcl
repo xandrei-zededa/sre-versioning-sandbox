@@ -4,6 +4,10 @@ variables {
   bucket_name                = "zededa-audit-logs"
   enable_versioning          = true
   enable_intelligent_tiering = true
+  custom_tags = {
+    Owner       = "SRE"
+    Environment = "Audit"
+  }
 }
 
 run "verify_bucket_and_tiering" {
@@ -22,5 +26,10 @@ run "verify_bucket_and_tiering" {
   assert {
     condition     = output.intelligent_tiering_enabled == true
     error_message = "Output flag mismatch"
+  }
+
+  assert {
+    condition     = aws_s3_bucket.this.tags["Owner"] == "SRE"
+    error_message = "Custom Owner tag was not applied"
   }
 }
