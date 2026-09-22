@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/xandrei-zededa/sre-versioning-sandbox/compare/modules/aws-eks-v1.2.0...modules/aws-eks-v1.3.0) (2026-09-22)
+
+
+### Features
+
+* **deps:** atomic update to aws-eks and irsa-role modules ([#36](https://github.com/xandrei-zededa/sre-versioning-sandbox/issues/36)) ([517f122](https://github.com/xandrei-zededa/sre-versioning-sandbox/commit/517f122a9254158d8bc7b8e67ea9c5bdc089fb58))
+
 ## [1.2.0](https://github.com/xandrei-zededa/sre-versioning-sandbox/compare/modules/aws-eks-v1.1.0...modules/aws-eks-v1.2.0) (2026-09-22)
 
 
