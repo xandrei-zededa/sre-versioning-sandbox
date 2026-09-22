@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/xandrei-zededa/sre-versioning-sandbox/compare/modules/sqs-queue-v2.0.0...modules/sqs-queue-v2.1.0) (2026-09-22)
+
+
+### Features
+
+* **sqs-queue:** add optional kms master key id for server side encryption ([#50](https://github.com/xandrei-zededa/sre-versioning-sandbox/issues/50)) ([80b993f](https://github.com/xandrei-zededa/sre-versioning-sandbox/commit/80b993f024759e516c8fb9a906892f7b3579b921))
+
 ## [2.0.0](https://github.com/xandrei-zededa/sre-versioning-sandbox/compare/modules/sqs-queue-v1.1.0...modules/sqs-queue-v2.0.0) (2026-09-22)
 
 
