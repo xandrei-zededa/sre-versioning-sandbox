@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: amannn/action-semantic-pull-request@v5
+        id: lint_pr_title
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -34,7 +35,30 @@ jobs:
             sandbox-test
             s3-bucket
             rds-postgres
+            sqs-queue
             deps
             renovate
             release
           requireScope: false
+
+      - name: Post Help Comment on Failure
+        if: failure()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: semantic-pr-help
+          message: |
+            ### ❌ Invalid PR Title Format detected!
+
+            Our repository uses **Conventional Commits** to automate SemVer releases and changelogs.
+
+            **Please rename your PR title** following this syntax:
+            ```text
+            <type>(<scope>): <short description>
+            ```
+
+            #### Examples:
+            * `feat(sqs-queue): add fifo dead letter queue support`
+            * `fix(aws-eks): resolve invalid security group rule`
+            * `chore(deps): update dependency version`
+
+            **Allowed scopes:** `aws-eks`, `irsa-role`, `rds-postgres`, `s3-bucket`, `sqs-queue`, `sandbox-test`, `deps`.
