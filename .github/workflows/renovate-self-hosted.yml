@@ -2,14 +2,16 @@ name: Renovate (Self-Hosted Runner)
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 */2 * * *'
+  # 1. Автоматический запуск при любом мерже в main
   push:
     branches:
       - main
-    paths:
-      - 'renovate.json5'
-      - '.release-please-manifest.json'
+  # 2. Автоматический запуск при закрытии или мерже любого PR
+  pull_request:
+    types: [closed]
+  # 3. Фоновый запуск по расписанию
+  schedule:
+    - cron: '0 */2 * * *'
 
 concurrency:
   group: renovate-self-hosted
