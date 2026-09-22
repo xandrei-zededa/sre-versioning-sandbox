@@ -8,6 +8,17 @@ terraform {
   }
 }
 
+# BREAKING CHANGE: required_vpc_id is now mandatory with no default
+variable "required_vpc_id" {
+  type        = string
+  description = "Mandatory VPC identifier for isolation"
+
+  validation {
+    condition     = startswith(var.required_vpc_id, "vpc-")
+    error_message = "VPC ID must start with vpc- prefix."
+  }
+}
+
 variable "queue_name" {
   type        = string
   description = "Name of the standard SQS queue"
@@ -37,4 +48,9 @@ output "queue_arn" {
 output "queue_id" {
   description = "ID of SQS queue"
   value       = aws_sqs_queue.this.id
+}
+
+output "vpc_id" {
+  description = "Attached mandatory VPC ID"
+  value       = var.required_vpc_id
 }
