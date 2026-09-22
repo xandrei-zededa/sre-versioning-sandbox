@@ -16,20 +16,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v1
-        with:
-          tofu_version: "1.12.1"
-
-      - name: Setup Terragrunt
-        uses: gruntwork-io/actions-setup-terragrunt@v1
-        with:
-          terragrunt_version: "0.93.8"
-
-      - name: Validate Plans for Destructive Deletions
+      - name: Enforce Zero-Destruction Guard on Protected Environments
         run: |
-          echo "Scanning all deployments for accidental resource deletions..."
-          # Parser scanning Terragrunt JSON plans
-          node -e '
-            console.log("Destructive Plan Guard active: zero deletions permitted on critical infrastructure.");
-          '
+          echo "Scanning PR for accidental resource removals..."
+          # If deployment changes contain removal markers, fail CI
+          if git diff origin/main HEAD | grep -E "^\-.*(aws_eks_cluster|aws_db_instance|aws_s3_bucket)" > /dev/null 2>&1; then
+            echo "❌ CRITICAL SECURITY GUARD: Accidental deletion of protected infrastructure detected!"
+            exit 1
+          fi
+          echo "✅ Guard passed: no destructive deletions found."
