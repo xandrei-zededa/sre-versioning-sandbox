@@ -1,0 +1,2 @@
+# Dummy test file to verify non-semantic PR rejection
+check_timestamp = "2026-09-22-test"
