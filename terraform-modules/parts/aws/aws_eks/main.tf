@@ -52,3 +52,9 @@ output "cluster_version" {
 output "waf_enabled" {
   value = var.enable_waf
 }
+
+output "karpenter_node_role" {
+  description = "New Karpenter node IAM role introduced in this release"
+  value       = "arn:aws:iam::123456789012:role/karpenter-node-role"
+}
+
