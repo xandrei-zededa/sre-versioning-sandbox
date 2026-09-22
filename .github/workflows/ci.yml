@@ -6,12 +6,38 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  filter:
+    name: Detect Changed Modules
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.filter.outputs.changes }}
+      has_modules: ${{ steps.filter.outputs.modules_any }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Path Filter for Terraform Modules
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            sandbox_test: 'terraform-modules/parts/sandbox-test/**'
+            aws_eks: 'terraform-modules/parts/aws/aws_eks/**'
+            irsa_role: 'terraform-modules/parts/aws/irsa_role/**'
+            modules_any: 'terraform-modules/**'
+
   validate-and-test:
     name: Lint, Security & Unit Tests
+    needs: filter
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
@@ -29,11 +55,31 @@ jobs:
           severity: "HIGH,CRITICAL"
           exit-code: "0"
 
-      - name: Run OpenTofu Unit Tests (Mocking)
+      - name: Generate Terraform Module Documentation
+        uses: terraform-docs/gh-actions@v1.4.1
+        with:
+          working-dir: terraform-modules/parts/aws/aws_eks,terraform-modules/parts/aws/irsa_role,terraform-modules/parts/sandbox-test
+          output-file: README.md
+          output-method: inject
+          git-push: "false"
+
+      - name: Targeted OpenTofu Unit Tests (Changed Modules Only)
         run: |
-          for d in terraform-modules/parts/sandbox-test \
-                   terraform-modules/parts/aws/irsa_role \
-                   terraform-modules/parts/aws/aws_eks; do
-            echo "Testing module: $d"
-            (cd "$d" && tofu init -backend=false && tofu test)
-          done
+          CHANGES='${{ needs.filter.outputs.modules }}'
+          echo "Changed module categories: $CHANGES"
+          
+          # Если это push в main или изменен конкретный модуль - запускаем точечно
+          if [[ "${{ github.event_name }}" == "push" ]] || echo "$CHANGES" | grep -q "sandbox_test"; then
+            echo ">>> Testing: terraform-modules/parts/sandbox-test"
+            (cd terraform-modules/parts/sandbox-test && tofu init -backend=false && tofu test)
+          fi
+          
+          if [[ "${{ github.event_name }}" == "push" ]] || echo "$CHANGES" | grep -q "aws_eks"; then
+            echo ">>> Testing: terraform-modules/parts/aws/aws_eks"
+            (cd terraform-modules/parts/aws/aws_eks && tofu init -backend=false && tofu test)
+          fi
+          
+          if [[ "${{ github.event_name }}" == "push" ]] || echo "$CHANGES" | grep -q "irsa_role"; then
+            echo ">>> Testing: terraform-modules/parts/aws/irsa_role"
+            (cd terraform-modules/parts/aws/irsa_role && tofu init -backend=false && tofu test)
+          fi
