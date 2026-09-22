@@ -25,8 +25,15 @@ variable "enable_intelligent_tiering" {
   default     = false
 }
 
+variable "custom_tags" {
+  type        = map(string)
+  description = "Custom metadata tags applied to S3 bucket"
+  default     = {}
+}
+
 resource "aws_s3_bucket" "this" {
   bucket = var.bucket_name
+  tags   = merge({ "ManagedBy" = "Terraform" }, var.custom_tags)
 }
 
 resource "aws_s3_bucket_versioning" "this" {
@@ -63,4 +70,9 @@ output "bucket_arn" {
 output "intelligent_tiering_enabled" {
   description = "Whether Intelligent Tiering archive is active"
   value       = var.enable_intelligent_tiering
+}
+
+output "applied_tags" {
+  description = "Merged tags map applied to the bucket"
+  value       = aws_s3_bucket.this.tags
 }
