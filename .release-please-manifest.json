@@ -1,5 +1,5 @@
 {
   "terraform-modules/parts/sandbox-test": "0.2.0",
-  "terraform-modules/parts/aws/aws_eks": "1.0.0",
+  "terraform-modules/parts/aws/aws_eks": "1.1.0",
   "terraform-modules/parts/aws/irsa_role": "1.0.0"
 }
