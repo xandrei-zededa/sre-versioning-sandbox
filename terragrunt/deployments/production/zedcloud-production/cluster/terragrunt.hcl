@@ -13,8 +13,8 @@ EOF
 }
 
 terraform {
-  # Production cluster pinned to stable v1.0.0
-  source = "git::https://github.com/xandrei-zededa/sre-versioning-sandbox.git//terraform-modules/parts/aws/aws_eks?ref=modules/aws-eks-v1.2.0"
+  # Production кластер зафиксирован на стабильной версии v1.0.0
+  source = "git::https://github.com/xandrei-zededa/sre-versioning-sandbox.git//terraform-modules/parts/aws/aws_eks?ref=modules/aws-eks-v1.0.0"
 }
 
 inputs = {
