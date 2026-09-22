@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Renovate configuration with zero-maintenance dynamic cluster discovery",
+  "description": "Renovate configuration with individual granular cluster updates and NO forced grouping",
   "extends": [
     "config:recommended"
   ],
@@ -26,26 +26,6 @@
       "packageNameTemplate": "https://github.com/{{{repo}}}.git",
       "versioningTemplate": "semver",
       "extractVersionTemplate": "^modules/{{packageName}}-v(?<version>.*)$"
-    }
-  ],
-  "packageRules": [
-    {
-      "description": "Автоматически группировать любые dev кластеры (даже новые!) по пути папки",
-      "matchFileNames": ["terragrunt/deployments/development/**"],
-      "groupName": "Canary Dev Clusters",
-      "commitMessageTopic": "Dev Clusters"
-    },
-    {
-      "description": "Автоматически группировать любые staging кластеры по пути папки",
-      "matchFileNames": ["terragrunt/deployments/staging/**"],
-      "groupName": "Staging Clusters",
-      "commitMessageTopic": "Staging Clusters"
-    },
-    {
-      "description": "Автоматически группировать любые production кластеры по пути папки",
-      "matchFileNames": ["terragrunt/deployments/production/**"],
-      "groupName": "Production Clusters",
-      "commitMessageTopic": "Production Clusters"
     }
   ]
 }
