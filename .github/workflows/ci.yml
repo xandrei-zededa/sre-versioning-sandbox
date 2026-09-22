@@ -18,10 +18,13 @@ jobs:
           tofu_version: "1.12.1"
 
       - name: OpenTofu Format Check
-        run: tofu fmt -check -recursive .
+        run: tofu fmt -check -recursive terraform-modules
 
-      - name: Run OpenTofu Unit Tests (Mocking)
+      - name: Run OpenTofu Unit Tests (All Modules via Mocking)
         run: |
-          cd terraform-modules/parts/sandbox-test
-          tofu init -backend=false
-          tofu test
+          for d in terraform-modules/parts/sandbox-test \
+                   terraform-modules/parts/aws/irsa_role \
+                   terraform-modules/parts/aws/aws_eks; do
+            echo "Testing module: $d"
+            (cd "$d" && tofu init -backend=false && tofu test)
+          done

@@ -5,6 +5,16 @@
       "release-type": "terraform-module",
       "package-name": "modules/sandbox-test",
       "changelog-path": "CHANGELOG.md"
+    },
+    "terraform-modules/parts/aws/aws_eks": {
+      "release-type": "terraform-module",
+      "package-name": "modules/aws-eks",
+      "changelog-path": "CHANGELOG.md"
+    },
+    "terraform-modules/parts/aws/irsa_role": {
+      "release-type": "terraform-module",
+      "package-name": "modules/irsa-role",
+      "changelog-path": "CHANGELOG.md"
     }
   }
 }
