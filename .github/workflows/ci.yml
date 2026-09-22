@@ -11,6 +11,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  discover-modules:
+    name: Auto-Discover Modules
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.discover.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Discover all testable modules automatically
+        id: discover
+        run: |
+          # 1. Finds all directories that contain unit tests (*.tftest.hcl)
+          # 2. Generates JSON matrix automatically. NO HARDCODED LISTS!
+          MODULES=$(find terraform-modules -name "*.tftest.hcl" -exec dirname {} + | sed 's/\/tests$//' | sort -u | jq -R -s -c '
+            split("\n") | map(select(length > 0)) | map({
+              name: (split("/") | last | gsub("_"; "-")),
+              path: .
+            })
+          ')
+          echo "Discovered modules: $MODULES"
+          echo "modules=$MODULES" >> $GITHUB_OUTPUT
+
   lint-and-security:
     name: Lint, Docs & Security
     runs-on: ubuntu-latest
@@ -22,10 +44,10 @@ jobs:
         with:
           tofu_version: "1.12.1"
 
-      - name: OpenTofu Format Check
+      - name: OpenTofu Format Check (All Modules)
         run: tofu fmt -check -recursive terraform-modules
 
-      - name: Security Scan with Trivy (HCL Misconfiguration)
+      - name: Security Scan with Trivy (All Modules)
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: "config"
@@ -33,7 +55,7 @@ jobs:
           severity: "HIGH,CRITICAL"
           exit-code: "0"
 
-      - name: Generate Module Documentation
+      - name: Generate Module Documentation (All Modules)
         uses: terraform-docs/gh-actions@v1.4.1
         with:
           working-dir: terraform-modules/parts/aws/aws_eks,terraform-modules/parts/aws/irsa_role,terraform-modules/parts/sandbox-test,terraform-modules/parts/aws/s3-bucket,terraform-modules/parts/aws/rds-postgres
@@ -43,21 +65,12 @@ jobs:
 
   unit-tests:
     name: Unit Test
+    needs: discover-modules
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        module:
-          - name: "aws-eks"
-            path: "terraform-modules/parts/aws/aws_eks"
-          - name: "irsa-role"
-            path: "terraform-modules/parts/aws/irsa_role"
-          - name: "rds-postgres"
-            path: "terraform-modules/parts/aws/rds-postgres"
-          - name: "s3-bucket"
-            path: "terraform-modules/parts/aws/s3-bucket"
-          - name: "sandbox-test"
-            path: "terraform-modules/parts/sandbox-test"
+        module: ${{ fromJson(needs.discover-modules.outputs.modules) }}
 
     steps:
       - uses: actions/checkout@v7
