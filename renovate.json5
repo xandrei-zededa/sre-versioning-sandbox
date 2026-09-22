@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Renovate configuration for Terraform monorepo with immediate git-tags detection",
+  "description": "Renovate configuration for Terraform monorepo with distinct commit and PR titles per cluster group",
   "extends": [
     "config:recommended"
   ],
@@ -32,17 +32,20 @@
     {
       "matchFileNames": ["terragrunt/deployments/development/**"],
       "groupName": "Canary Dev Clusters",
-      "automerge": false
+      "commitMessageTopic": "Dev Clusters (madmax/alpha)",
+      "prTitle": "chore(deps): bump modules in Dev Clusters (madmax/alpha) to {{newVersion}}"
     },
     {
       "matchFileNames": ["terragrunt/deployments/staging/**"],
       "groupName": "Staging Clusters",
-      "automerge": false
+      "commitMessageTopic": "Staging Clusters",
+      "prTitle": "chore(deps): bump modules in Staging Clusters to {{newVersion}}"
     },
     {
       "matchFileNames": ["terragrunt/deployments/production/**"],
       "groupName": "Production Clusters",
-      "automerge": false
+      "commitMessageTopic": "Production Clusters",
+      "prTitle": "chore(deps): bump modules in Production Clusters to {{newVersion}}"
     }
   ]
 }
