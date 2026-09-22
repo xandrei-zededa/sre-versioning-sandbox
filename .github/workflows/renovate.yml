@@ -4,17 +4,19 @@ on:
   issues:
     types: [edited]
   workflow_dispatch:
-  schedule:
-    - cron: '0 * * * *' # Every hour
+
+concurrency:
+  group: renovate-trigger
+  cancel-in-progress: true
 
 jobs:
   renovate:
-    if: github.event_name != 'issues' || github.event.issue.number == 4
+    if: github.event_name != 'issues' || github.event.issue.number == 14
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
 
-      - name: Run Renovate on Dashboard Checkbox Change
+      - name: Run Renovate on Dashboard Action
         run: |
           npx --yes --package renovate renovate \
             --token="${{ secrets.GITHUB_TOKEN }}" \
