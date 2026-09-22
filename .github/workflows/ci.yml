@@ -10,6 +10,9 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform-plugin-cache
+
 jobs:
   discover-modules:
     name: Auto-Discover Modules
@@ -19,18 +22,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Discover all testable modules automatically
+      - name: Discover testable modules
         id: discover
         run: |
-          # 1. Finds all directories that contain unit tests (*.tftest.hcl)
-          # 2. Generates JSON matrix automatically. NO HARDCODED LISTS!
           MODULES=$(find terraform-modules -name "*.tftest.hcl" -exec dirname {} + | sed 's/\/tests$//' | sort -u | jq -R -s -c '
             split("\n") | map(select(length > 0)) | map({
               name: (split("/") | last | gsub("_"; "-")),
               path: .
             })
           ')
-          echo "Discovered modules: $MODULES"
           echo "modules=$MODULES" >> $GITHUB_OUTPUT
 
   lint-and-security:
@@ -39,15 +39,16 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Setup OpenTofu
+      - name: Setup OpenTofu (Fast & Cached)
         uses: opentofu/setup-opentofu@v1
         with:
           tofu_version: "1.12.1"
+          tofu_wrapper: false
 
-      - name: OpenTofu Format Check (All Modules)
+      - name: OpenTofu Format Check
         run: tofu fmt -check -recursive terraform-modules
 
-      - name: Security Scan with Trivy (All Modules)
+      - name: Fast Offline Security Scan (Trivy)
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: "config"
@@ -55,10 +56,10 @@ jobs:
           severity: "HIGH,CRITICAL"
           exit-code: "0"
 
-      - name: Generate Module Documentation (All Modules)
+      - name: Generate Module Documentation
         uses: terraform-docs/gh-actions@v1.4.1
         with:
-          working-dir: terraform-modules/parts/aws/aws_eks,terraform-modules/parts/aws/irsa_role,terraform-modules/parts/sandbox-test,terraform-modules/parts/aws/s3-bucket,terraform-modules/parts/aws/rds-postgres
+          working-dir: terraform-modules/parts/aws/aws_eks,terraform-modules/parts/aws/irsa_role,terraform-modules/parts/sandbox-test,terraform-modules/parts/aws/s3-bucket,terraform-modules/parts/aws/rds-postgres,terraform-modules/parts/aws/sqs-queue
           output-file: README.md
           output-method: inject
           git-push: "false"
@@ -75,13 +76,23 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Setup OpenTofu
+      - name: Restore OpenTofu Provider Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.terraform-plugin-cache
+          key: tofu-providers-${{ runner.os }}-${{ hashFiles('**/.terraform.lock.hcl') }}
+          restore-keys: |
+            tofu-providers-${{ runner.os }}-
+
+      - name: Setup OpenTofu (No Wrapper Overhead)
         uses: opentofu/setup-opentofu@v1
         with:
           tofu_version: "1.12.1"
+          tofu_wrapper: false
 
-      - name: Test ${{ matrix.module.name }} (tofu test + mock_provider)
+      - name: Test ${{ matrix.module.name }} (Fast Mock Run)
         working-directory: ${{ matrix.module.path }}
         run: |
+          mkdir -p ${{ env.TF_PLUGIN_CACHE_DIR }}
           tofu init -backend=false
           tofu test
