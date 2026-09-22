@@ -6,6 +6,9 @@
   ],
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "📦 Dependency Dashboard (Terraform Modules)",
+  "terragrunt": {
+    "enabled": false
+  },
   "customManagers": [
     {
       "customType": "regex",
@@ -16,7 +19,7 @@
         "source\\s*=\\s*\"git::https://github\\.com/(?<repo>[\\w-]+/[\\w-]+)\\.git//(?<depName>[\\w/-]+)\\?ref=modules/(?<packageName>[\\w-]+)-(?<tagPrefix>v)(?<currentValue>[\\d\\.]+)\""
       ],
       "datasourceTemplate": "git-tags",
-      "depNameTemplate": "https://github.com/{{{repo}}}.git",
+      "packageNameTemplate": "https://github.com/{{{repo}}}.git",
       "versioningTemplate": "semver",
       "extractVersionTemplate": "^modules/{{packageName}}-v(?<version>.*)$"
     }
