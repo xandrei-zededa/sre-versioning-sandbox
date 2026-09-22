@@ -1,0 +1,2 @@
+# Zero friction test file
+val = 1
