@@ -8,6 +8,7 @@ on:
 
 jobs:
   validate-and-test:
+    name: Lint, Security & Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,7 +21,15 @@ jobs:
       - name: OpenTofu Format Check
         run: tofu fmt -check -recursive terraform-modules
 
-      - name: Run OpenTofu Unit Tests (All Modules via Mocking)
+      - name: Security Scan with Trivy (HCL Misconfiguration)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          scan-ref: "terraform-modules"
+          severity: "HIGH,CRITICAL"
+          exit-code: "0"
+
+      - name: Run OpenTofu Unit Tests (Mocking)
         run: |
           for d in terraform-modules/parts/sandbox-test \
                    terraform-modules/parts/aws/irsa_role \

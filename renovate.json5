@@ -1,12 +1,15 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Renovate configuration for sandbox testing",
+  "description": "Renovate configuration for sandbox testing - Terraform modules only",
   "extends": [
     "config:recommended"
   ],
   "dependencyDashboard": true,
   "dependencyDashboardTitle": "📦 Dependency Dashboard (Terraform Modules)",
   "terragrunt": {
+    "enabled": false
+  },
+  "github-actions": {
     "enabled": false
   },
   "customManagers": [
