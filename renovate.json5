@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Renovate configuration with individual granular cluster updates and NO forced grouping",
+  "description": "Renovate configuration with 100% individual per-file granular controls and NO forced grouping",
   "extends": [
     "config:recommended"
   ],
@@ -10,6 +10,9 @@
     "enabled": false
   },
   "github-actions": {
+    "enabled": false
+  },
+  "group": {
     "enabled": false
   },
   "customManagers": [
