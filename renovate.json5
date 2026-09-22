@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Renovate configuration for Terraform monorepo with distinct commit messages per cluster group",
+  "description": "Renovate configuration with individual per-cluster granular controls",
   "extends": [
     "config:recommended"
   ],
@@ -30,19 +30,28 @@
   ],
   "packageRules": [
     {
-      "matchFileNames": ["terragrunt/deployments/development/**"],
-      "groupName": "Canary Dev Clusters",
-      "commitMessageTopic": "Dev Clusters (madmax/alpha)"
+      "description": "Granular rule for Dev cluster madmax only",
+      "matchFileNames": ["terragrunt/deployments/development/zedcloud-madmax/**"],
+      "groupName": "Cluster: madmax",
+      "commitMessageTopic": "Cluster madmax"
     },
     {
-      "matchFileNames": ["terragrunt/deployments/staging/**"],
-      "groupName": "Staging Clusters",
-      "commitMessageTopic": "Staging Clusters"
+      "description": "Granular rule for Dev cluster alpha only",
+      "matchFileNames": ["terragrunt/deployments/development/zedcloud-alpha/**"],
+      "groupName": "Cluster: alpha",
+      "commitMessageTopic": "Cluster alpha"
     },
     {
-      "matchFileNames": ["terragrunt/deployments/production/**"],
-      "groupName": "Production Clusters",
-      "commitMessageTopic": "Production Clusters"
+      "description": "Granular rule for Staging cluster only",
+      "matchFileNames": ["terragrunt/deployments/staging/zedcloud-staging/**"],
+      "groupName": "Cluster: staging",
+      "commitMessageTopic": "Cluster staging"
+    },
+    {
+      "description": "Granular rule for Production cluster only",
+      "matchFileNames": ["terragrunt/deployments/production/zedcloud-production/**"],
+      "groupName": "Cluster: production",
+      "commitMessageTopic": "Cluster production"
     }
   ]
 }
