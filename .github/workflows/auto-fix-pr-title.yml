@@ -1,0 +1,86 @@
+name: Auto-Format PR Title & Fallback Fixer
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  auto-fix-title:
+    name: Auto-Format PR Title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect and Auto-Fix PR Title
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const originalTitle = pr.title.trim();
+            const branchName = pr.head.ref;
+            
+            // Regex for Conventional Commits
+            const semanticRegex = /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-zA-Z0-9_-]+\))?!?: .+/;
+            
+            if (semanticRegex.test(originalTitle)) {
+              console.log("PR Title is already semantic:", originalTitle);
+              return;
+            }
+            
+            console.log("Non-semantic title detected:", originalTitle);
+            
+            // 1. Try to guess scope from branch name (e.g. feat/aws-eks-add-role -> feat(aws-eks): ...)
+            let guessedType = "chore";
+            let guessedScope = "";
+            
+            if (branchName.startsWith("feat/")) guessedType = "feat";
+            else if (branchName.startsWith("fix/")) guessedType = "fix";
+            else if (branchName.startsWith("docs/")) guessedType = "docs";
+            
+            const scopes = ["aws-eks", "irsa-role", "s3-bucket", "rds-postgres", "sandbox-test"];
+            for (const s of scopes) {
+              if (branchName.includes(s) || originalTitle.toLowerCase().includes(s)) {
+                guessedScope = `(${s})`;
+                break;
+              }
+            }
+            
+            // If no scope found, check modified files via GitHub API
+            if (!guessedScope) {
+              const files = await github.rest.pulls.listFiles({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                per_page: 30
+              });
+              
+              for (const f of files.data) {
+                if (f.filename.includes("aws_eks")) { guessedScope = "(aws-eks)"; break; }
+                if (f.filename.includes("irsa_role")) { guessedScope = "(irsa-role)"; break; }
+                if (f.filename.includes("s3-bucket")) { guessedScope = "(s3-bucket)"; break; }
+                if (f.filename.includes("rds-postgres")) { guessedScope = "(rds-postgres)"; break; }
+                if (f.filename.includes("sandbox-test")) { guessedScope = "(sandbox-test)"; break; }
+              }
+            }
+            
+            // Fallback scope if still undetermined
+            if (!guessedScope) guessedScope = "(deps)";
+            
+            // Format clean title
+            const sanitizedDescription = originalTitle.replace(/^[A-Z]/, c => c.toLowerCase());
+            const newTitle = `${guessedType}${guessedScope}: ${sanitizedDescription}`;
+            
+            console.log(`Auto-correcting PR title: "${originalTitle}" -> "${newTitle}"`);
+            
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              title: newTitle
+            });
+            
+            console.log("Successfully auto-updated PR title. Developer intervention not required!");
