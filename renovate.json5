@@ -1,0 +1,24 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Renovate configuration for sandbox testing",
+  "extends": [
+    "config:recommended"
+  ],
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "📦 Dependency Dashboard (Terraform Modules)",
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "(^|/)terragrunt\\.hcl$"
+      ],
+      "matchStrings": [
+        "source\\s*=\\s*\"git::https://github\\.com/(?<repo>[\\w-]+/[\\w-]+)\\.git//(?<depName>[\\w/-]+)\\?ref=modules/(?<packageName>[\\w-]+)/v(?<currentValue>[\\d\\.]+)\""
+      ],
+      "datasourceTemplate": "git-tags",
+      "depNameTemplate": "https://github.com/{{{repo}}}.git",
+      "versioningTemplate": "semver",
+      "extractVersionTemplate": "^modules/{{packageName}}/v(?<version>.*)$"
+    }
+  ]
+}

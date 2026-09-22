@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    "terraform-modules/parts/sandbox-test": {
+      "release-type": "terraform-module",
+      "package-name": "modules/sandbox-test",
+      "changelog-path": "CHANGELOG.md"
+    }
+  }
+}

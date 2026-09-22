@@ -1,0 +1,27 @@
+name: CI (Terraform & OpenTofu)
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  validate-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: "1.12.1"
+
+      - name: OpenTofu Format Check
+        run: tofu fmt -check -recursive .
+
+      - name: Run OpenTofu Unit Tests (Mocking)
+        run: |
+          cd terraform-modules/parts/sandbox-test
+          tofu init -backend=false
+          tofu test
