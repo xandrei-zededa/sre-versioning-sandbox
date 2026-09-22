@@ -32,10 +32,10 @@ jobs:
           fi
 
           echo "Comparing against: $BASE_REF"
-          
+
           # Find all testable modules with a tests directory
           ALL_MODULES=$(find terraform-modules -name "*.tftest.hcl" -exec dirname {} + | sed 's/\/tests$//' | sort -u)
-          
+
           CHANGED_MODULES=()
           for mod in $ALL_MODULES; do
             # If on push to main or files in this specific module changed
