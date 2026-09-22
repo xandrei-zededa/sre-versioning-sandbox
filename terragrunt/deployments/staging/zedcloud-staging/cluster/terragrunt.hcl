@@ -13,7 +13,7 @@ EOF
 }
 
 terraform {
-  source = "git::https://github.com/xandrei-zededa/sre-versioning-sandbox.git//terraform-modules/parts/aws/aws_eks?ref=modules/aws-eks-v1.0.0"
+  source = "git::https://github.com/xandrei-zededa/sre-versioning-sandbox.git//terraform-modules/parts/aws/aws_eks?ref=modules/aws-eks-v1.2.0"
 }
 
 inputs = {
