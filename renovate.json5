@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Renovate configuration with true per-file branch separation for independent cluster checkboxes",
+  "description": "Renovate configuration with separate branches and PRs for every single file and cluster",
   "extends": [
     "config:recommended"
   ],
@@ -12,6 +12,8 @@
   "github-actions": {
     "enabled": false
   },
+  "separateMinorPatch": true,
+  "separateMultipleMajor": true,
   "customManagers": [
     {
       "customType": "regex",
@@ -22,17 +24,10 @@
         "source\\s*=\\s*\"git::https://github\\.com/(?<repo>[\\w-]+/[\\w-]+)\\.git//(?<depName>[\\w/-]+)\\?ref=modules/(?<packageName>[\\w-]+)-(?<tagPrefix>v)(?<currentValue>[\\d\\.]+)\""
       ],
       "datasourceTemplate": "git-tags",
-      "depNameTemplate": "{{{repo}}}",
+      "depNameTemplate": "{{{packageFileDir}}}:{{{packageName}}}",
       "packageNameTemplate": "https://github.com/{{{repo}}}.git",
       "versioningTemplate": "semver",
       "extractVersionTemplate": "^modules/{{packageName}}-v(?<version>.*)$"
-    }
-  ],
-  "packageRules": [
-    {
-      "description": "Ensure distinct branch names and dashboard rows for every cluster deployment file",
-      "matchManagers": ["custom.regex"],
-      "additionalBranchPrefix": "{{replace 'terragrunt/deployments/' '' packageFileDir}}-"
     }
   ]
 }
