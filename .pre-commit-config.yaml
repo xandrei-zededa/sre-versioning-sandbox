@@ -1,0 +1,48 @@
+repos:
+  # 1. Standard hygiene checks (Trailing whitespace, EOF, JSON/YAML validation)
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+
+  # 2. Conventional Commits validation for commit messages
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [
+          "feat", "fix", "docs", "style", "refactor",
+          "perf", "test", "build", "ci", "chore", "revert"
+        ]
+
+  # 3. OpenTofu Native Formatting Check
+  - repo: local
+    hooks:
+      - id: tofu-fmt
+        name: OpenTofu Format Check
+        entry: tofu fmt -check
+        language: system
+        files: \.tf$|\.tftest\.hcl$
+        pass_filenames: false
+
+      # 4. Trivy Security & Misconfiguration Scan
+      - id: trivy-config
+        name: Trivy Security Scan (HIGH,CRITICAL)
+        entry: trivy config --skip-check-update --severity HIGH,CRITICAL terraform-modules
+        language: system
+        files: \.tf$
+        pass_filenames: false
+
+      # 5. OpenTofu Unit Tests via Mock Provider
+      - id: tofu-test
+        name: OpenTofu Unit Tests (Zero-Cloud Mocks)
+        entry: bash -c 'for d in terraform-modules/parts/*/*; do if [ -d "$d/tests" ]; then (cd "$d" && tofu init -backend=false > /dev/null 2>&1 && tofu test > /dev/null); fi; done'
+        language: system
+        files: \.tf$|\.tftest\.hcl$
+        pass_filenames: false

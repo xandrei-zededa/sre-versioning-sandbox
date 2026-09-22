@@ -1,7 +1,7 @@
 # RFC & Rollout Plan: Семантическое версионирование Terraform-модулей в sre
 
-> **Статус:** Proof of Concept завершен со 100% успехом  
-> **Живой прототип (GitHub):** [https://github.com/xandrei-zededa/sre-versioning-sandbox](https://github.com/xandrei-zededa/sre-versioning-sandbox)  
+> **Статус:** Proof of Concept завершен со 100% успехом
+> **Живой прототип (GitHub):** [https://github.com/xandrei-zededa/sre-versioning-sandbox](https://github.com/xandrei-zededa/sre-versioning-sandbox)
 > **Влияние на существующий продакшен `zededa/sre`:** 0% (полная обратная совместимость)
 
 ---
@@ -47,7 +47,7 @@
 
 ## 3. Защита от спама (Dependency Dashboard)
 
-В репозитории **НЕ создаются** десятки неконтролируемых PR от ботов.  
+В репозитории **НЕ создаются** десятки неконтролируемых PR от ботов.
 Вместо этого Renovate держит **один единственный Issue — [Dependency Dashboard](https://github.com/xandrei-zededa/sre-versioning-sandbox/issues/4)**:
 
 ```markdown
